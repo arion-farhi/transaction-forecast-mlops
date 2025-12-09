@@ -1,8 +1,6 @@
 # Transaction Volume Forecasting - MLOps Pipeline
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://transaction-forecast-mlops-demo.streamlit.app)
-
-**[Live Demo](https://transaction-forecast-mlops-demo.streamlit.app)** | End-to-end MLOps system for forecasting e-commerce transaction volumes
+**[Live Demo](https://streamlit-demo-1023117266322.us-central1.run.app/)** | End-to-end MLOps system for forecasting e-commerce transaction volumes on Google Cloud
 
 ---
 
@@ -15,7 +13,7 @@ Fintech and e-commerce companies struggle to predict daily transaction volumes a
 
 ## The Solution
 
-Built and benchmarked three distinct forecasting approaches against 2 years of Brazilian e-commerce transaction data (99,441 orders → 610 daily volumes). Implemented a production MLOps pipeline with automated retraining, champion/challenger model evaluation, and drift monitoring.
+Built and benchmarked three distinct forecasting approaches against 2 years of Brazilian e-commerce transaction data (99,441 orders → 610 daily volumes). Implemented a production MLOps pipeline with automated retraining, champion/challenger model evaluation, and drift monitoring - all deployed on Google Cloud Platform.
 
 ---
 
@@ -91,7 +89,7 @@ Implemented evaluation logic where new models only deploy if they beat the curre
                  v
         +-----------------+
         |    Cloud Run    |
-        |   (Streamlit)   |
+        |   (Demo App)    |
         +-----------------+
 ```
 
@@ -121,6 +119,10 @@ Models versioned with performance metrics stored as labels for champion/challeng
 
 ![Cloud Function](screenshots/cloud-functions.png)
 
+**Cloud Run** hosts the containerized demo application:
+
+![Cloud Run](screenshots/cloud-run.png)
+
 **Cloud Storage** organized for data, models, and pipeline artifacts:
 
 ![GCS Bucket](screenshots/gcs-bucket.png)
@@ -134,7 +136,7 @@ Models versioned with performance metrics stored as labels for champion/challeng
 | **Modeling** | Prophet, XGBoost, TensorFlow/Keras (LSTM), Scikit-learn |
 | **Data** | Pandas, NumPy, BigQuery |
 | **Orchestration** | Kubeflow Pipelines, Vertex AI Training, Vertex AI Model Registry |
-| **Deployment** | Vertex AI Endpoints, Cloud Run, Cloud Build CI/CD |
+| **Deployment** | Vertex AI Endpoints, Cloud Run (containerized), Cloud Build CI/CD |
 | **Monitoring** | BigQuery continuous evaluation, Model Monitoring drift detection, Cloud Functions retraining triggers |
 
 ---
@@ -161,7 +163,8 @@ transaction-forecast-mlops/
 │       └── requirements.txt
 ├── streamlit/
 │   ├── app.py
-│   └── requirements.txt
+│   ├── requirements.txt
+│   └── Dockerfile
 └── screenshots/
 ```
 

@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Transaction Forecast MLOps", layout="wide")
 
-st.title("🔮 Transaction Volume Forecasting")
+st.title("Transaction Volume Forecasting")
 st.markdown("**MLOps Pipeline Demo** - XGBoost model achieving 6.41% MAPE")
 
 # Sidebar
@@ -73,44 +73,59 @@ with tab3:
     st.header("MLOps Architecture")
     
     st.code("""
-    ┌─────────────────────────────────────────────────────────────────┐
-    │                         TRIGGERS                                 │
-    │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-    │  │   CI/CD     │  │    Drift    │  │  Scheduled  │              │
-    │  │ Cloud Build │  │  Detection  │  │   BigQuery  │              │
-    │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
-    │         └────────────────┼────────────────┘                      │
-    │                          ▼                                       │
-    │                 ┌─────────────────┐                              │
-    │                 │ Cloud Function  │                              │
-    │                 │ retrain-trigger │                              │
-    │                 └────────┬────────┘                              │
-    │                          ▼                                       │
-    │         ┌─────────────────────────────────┐                      │
-    │         │      Vertex AI Pipeline         │                      │
-    │         │  Ingest → Features → Train      │                      │
-    │         │         → Evaluate → Register   │                      │
-    │         └───────────────┬─────────────────┘                      │
-    │                         ▼                                        │
-    │         ┌─────────────────────────────────┐                      │
-    │         │        Model Registry           │                      │
-    │         │   (Champion/Challenger Logic)   │                      │
-    │         └───────────────┬─────────────────┘                      │
-    │                         ▼                                        │
-    │         ┌─────────────────┐    ┌──────────────────┐              │
-    │         │    Endpoint     │───▶│ Model Monitoring │              │
-    │         └─────────────────┘    └──────────────────┘              │
-    └─────────────────────────────────────────────────────────────────┘
+                              TRIGGERS
+        +-------------+  +-------------+  +-------------+
+        |    CI/CD    |  |    Drift    |  |  Scheduled  |
+        | Cloud Build |  |  Detection  |  |   BigQuery  |
+        +------+------+  +------+------+  +------+------+
+               |                |                |
+               +----------------+----------------+
+                                |
+                                v
+                     +-------------------+
+                     |  Cloud Function   |
+                     |  retrain-trigger  |
+                     +--------+----------+
+                              |
+                              v
+               +-----------------------------+
+               |     Vertex AI Pipeline      |
+               |  Ingest -> Features -> Train|
+               |     -> Evaluate -> Register |
+               +--------------+--------------+
+                              |
+                              v
+               +-----------------------------+
+               |       Model Registry        |
+               |  (Champion/Challenger Logic)|
+               +--------------+--------------+
+                              |
+                              v
+                 +------------+------------+
+                 |                         |
+                 v                         v
+        +-----------------+      +------------------+
+        | Vertex Endpoint |----->| Model Monitoring |
+        +-----------------+      +------------------+
+                 |
+                 v
+        +-----------------+
+        |    Cloud Run    |
+        |   (Streamlit)   |
+        +-----------------+
     """, language=None)
     
     st.markdown("### Tech Stack")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown("**Modeling**")
-        st.markdown("- Prophet\n- XGBoost\n- TensorFlow/LSTM")
+        st.markdown("- Prophet\n- XGBoost\n- TensorFlow/LSTM\n- Scikit-learn")
     with col2:
-        st.markdown("**Orchestration**")
-        st.markdown("- Kubeflow Pipelines\n- Vertex AI\n- Model Registry")
+        st.markdown("**Data**")
+        st.markdown("- Pandas/NumPy\n- BigQuery")
     with col3:
-        st.markdown("**Monitoring**")
-        st.markdown("- BigQuery Eval\n- Model Monitoring\n- Cloud Functions")
+        st.markdown("**Orchestration**")
+        st.markdown("- Kubeflow Pipelines\n- Vertex AI Training\n- Model Registry")
+    with col4:
+        st.markdown("**Deployment & Monitoring**")
+        st.markdown("- Vertex AI Endpoints\n- Cloud Run\n- Cloud Build CI/CD\n- Model Monitoring\n- Cloud Functions")

@@ -1,0 +1,36 @@
+
+# cloudbuild.yaml
+# Triggers pipeline retraining on code changes
+
+steps:
+  # Step 1: Install dependencies
+  - name: 'python:3.10'
+    entrypoint: pip
+    args: ['install', '-r', 'requirements.txt', '--user']
+
+  # Step 2: Run tests
+  - name: 'python:3.10'
+    entrypoint: python
+    args: ['-m', 'pytest', 'tests/', '-v']
+    
+  # Step 3: Upload pipeline template to GCS
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'pipeline/transaction_forecast_pipeline.json', 'gs://transaction-forecast-data/pipeline/']
+
+  # Step 4: Trigger retraining pipeline
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        curl -X POST https://us-central1-transaction-forecast-mlops.cloudfunctions.net/retrain-trigger \
+          -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+          -H "Content-Type: application/json" \
+          -d '{"trigger_reason": "ci_cd_deploy", "random_state": 42}'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: us-central1
+  _BUCKET: transaction-forecast-data

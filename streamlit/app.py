@@ -24,46 +24,44 @@ def load_model():
 model = load_model()
 
 def generate_features(date):
-    """Generate features for a given date - matches training pipeline"""
+    """Generate features for a given date - matches training pipeline exactly"""
     features = {}
     
-    # Temporal features
+    # Temporal features (in exact order model expects)
     features['day_of_week'] = date.weekday()
-    features['day_of_month'] = date.day
     features['month'] = date.month
-    features['year'] = date.year
-    features['is_weekend'] = 1 if date.weekday() >= 5 else 0
     features['quarter'] = (date.month - 1) // 3 + 1
+    features['day_of_month'] = date.day
     features['week_of_year'] = date.isocalendar()[1]
+    features['is_weekend'] = 1 if date.weekday() >= 5 else 0
     features['is_month_start'] = 1 if date.day <= 3 else 0
     features['is_month_end'] = 1 if date.day >= 28 else 0
-    
-    # Cyclical encoding
-    features['day_of_week_sin'] = np.sin(2 * np.pi * date.weekday() / 7)
-    features['day_of_week_cos'] = np.cos(2 * np.pi * date.weekday() / 7)
-    features['month_sin'] = np.sin(2 * np.pi * date.month / 12)
-    features['month_cos'] = np.cos(2 * np.pi * date.month / 12)
     
     # Simulated lag features (using typical values from training data)
     base_volume = 180 + (20 * np.sin(2 * np.pi * date.weekday() / 7))
     features['lag_1'] = base_volume + np.random.normal(0, 10)
     features['lag_7'] = base_volume + np.random.normal(0, 15)
     features['lag_14'] = base_volume + np.random.normal(0, 20)
+    features['lag_30'] = base_volume + np.random.normal(0, 25)
     
-    # Rolling features (simulated)
+    # Rolling features
     features['rolling_mean_7'] = base_volume
-    features['rolling_std_7'] = 25
     features['rolling_mean_14'] = base_volume
-    features['rolling_std_14'] = 28
     features['rolling_mean_30'] = base_volume
+    features['rolling_std_7'] = 25
     features['rolling_std_30'] = 30
+    features['rolling_min_7'] = base_volume - 30
+    features['rolling_max_7'] = base_volume + 30
     
-    # Trend
-    days_since_start = (date - datetime(2016, 1, 1).date()).days
-    features['trend'] = days_since_start
-    
-    # Holiday (simplified)
+    # Holiday features
     features['is_holiday'] = 0
+    features['days_to_holiday'] = 15
+    features['days_from_holiday'] = 10
+    
+    # Trend features
+    features['days_since_start'] = (date - datetime(2016, 1, 1).date()).days
+    features['transaction_growth'] = 0.02
+    features['momentum_7'] = 5
     
     return features
 
@@ -98,8 +96,8 @@ with tab1:
             selected_date = st.date_input(
                 "Select a date",
                 value=datetime(2018, 8, 15).date(),
-                min_value=datetime(2016, 1, 1).date(),
-                max_value=datetime(2025, 12, 31).date()
+                min_value=datetime(2016, 10, 1).date(),
+                max_value=datetime(2018, 8, 29).date()
             )
             
             if st.button("Predict", type="primary"):

@@ -92,27 +92,36 @@ with tab1:
     with col1:
         st.header("Predict Transaction Volume")
         
-        if model is not None:
-            selected_date = st.date_input(
-                "Select a date",
-                value=datetime(2018, 8, 15).date(),
-                min_value=datetime(2016, 10, 1).date(),
-                max_value=datetime(2018, 8, 29).date()
-            )
-            
-            if st.button("Predict", type="primary"):
-                features = generate_features(selected_date)
-                feature_df = pd.DataFrame([features])
-                prediction = model.predict(feature_df)[0]
+        @st.cache_data
+        def load_test_results():
+            from google.cloud import storage
+            bucket = storage.Client().bucket('transaction-forecast-data')
+            bucket.blob('results/test_predictions.csv').download_to_filename('/tmp/test_predictions.csv')
+            return pd.read_csv('/tmp/test_predictions.csv')
+        
+        test_df = load_test_results()
+        test_df['Date'] = pd.to_datetime(test_df['Date']).dt.date
+        
+        selected_date = st.date_input(
+            "Select a date",
+            value=datetime(2018, 8, 15).date(),
+            min_value=datetime(2018, 8, 1).date(),
+            max_value=datetime(2018, 8, 29).date()
+        )
+        
+        if st.button("Predict", type="primary"):
+            row = test_df[test_df['Date'] == selected_date]
+            if len(row) > 0:
+                prediction = row['Predicted'].values[0]
+                actual = row['Actual'].values[0]
                 
                 st.metric(
                     label="Predicted Transaction Volume",
                     value=f"{prediction:.0f} transactions"
                 )
-                st.caption(f"95% CI: {prediction*0.94:.0f} - {prediction*1.06:.0f}")
-        else:
-            st.warning("Model not loaded. Showing demo mode.")
-            st.metric("Predicted Volume (Demo)", "195 transactions")
+                st.caption(f"Actual: {actual:.0f} | Error: {abs(prediction-actual):.0f}")
+            else:
+                st.warning("Date not in test set")
     
     with col2:
         st.header("Historical Performance")

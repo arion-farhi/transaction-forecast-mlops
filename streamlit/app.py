@@ -117,12 +117,15 @@ with tab1:
     with col2:
         st.header("Historical Performance")
         
-        dates = pd.date_range(start="2018-07-01", end="2018-08-29", freq="D")
-        np.random.seed(42)
-        actual = [160 + int(30 * np.sin(i/7 * 2 * np.pi)) + np.random.randint(-15, 15) for i in range(len(dates))]
-        predicted = [a + np.random.randint(-12, 12) for a in actual]
+        @st.cache_data
+        def load_test_results():
+            from google.cloud import storage
+            bucket = storage.Client().bucket('transaction-forecast-data')
+            bucket.blob('results/test_predictions.csv').download_to_filename('/tmp/test_predictions.csv')
+            return pd.read_csv('/tmp/test_predictions.csv')
         
-        df = pd.DataFrame({"Date": dates, "Actual": actual, "Predicted": predicted})
+        df = load_test_results()
+        df['Date'] = pd.to_datetime(df['Date'])
         
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df["Date"], y=df["Actual"], name="Actual", line=dict(color="#3498db", width=2)))
